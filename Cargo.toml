@@ -1,0 +1,5 @@
+[package]
+
+name = "phant"
+version = "0.1.0"
+authors = [ "ethan.frei@gmail.com" ]
