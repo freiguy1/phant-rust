@@ -1,7 +1,7 @@
 phant-rust [![Build Status](https://travis-ci.org/freiguy1/phant-rust.svg?branch=master)](https://travis-ci.org/freiguy1/phant-rust)
 ==========
 
-A library in rust for manipulating data on a [Phant](phant.io) server.
+A library in rust for manipulating data on a [Phant](phant.io) server.  Check out the [generated documentation](http://www.rust-ci.org/freiguy1/phant-rust/doc/phant/) for detailed information.
 
 ### To use with cargo:
 
