@@ -20,10 +20,10 @@ use std::io::TcpStream;
 
 #[deriving(Show)]
 pub struct Phant {
-    hostname: String,
-    public_key: String,
-    private_key: String,
-    data: HashMap<String, String>
+    pub hostname: String,
+    pub public_key: String,
+    pub private_key: String,
+    pub data: HashMap<String, String>
 }
 
 impl Phant {
