@@ -20,10 +20,10 @@ use std::io::TcpStream;
 
 #[deriving(Show)]
 pub struct Phant {
-    pub hostname: String,
-    pub public_key: String,
-    pub private_key: String,
-    pub data: HashMap<String, String>
+    hostname: String,
+    public_key: String,
+    private_key: String,
+    data: HashMap<String, String>
 }
 
 impl Phant {
@@ -87,6 +87,13 @@ impl Phant {
     /// ```
     pub fn get_url(&self) -> String {
         format!("http://{}/input/{}?private_key={}&{}", self.hostname, self.public_key, self.private_key, self.data_query_string())
+    }
+
+    /// Returns a clone of the data for the current row being added to. Notice: it's a
+    /// clone, so manipulations done to this returned object will _not_ modify the
+    /// data being held locally in the `Phant` object.
+    pub fn row_data(&self) -> HashMap<String, String> {
+        self.data.clone()
     }
 
     fn data_query_string(&self) -> String {
