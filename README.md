@@ -1,4 +1,4 @@
-phant-rust
+phant-rust [![Build Status](https://travis-ci.org/freiguy1/phant-rust.svg?branch=master)](https://travis-ci.org/freiguy1/phant-rust)
 ==========
 
 A library in rust for manipulating data on a [Phant](phant.io) server.
