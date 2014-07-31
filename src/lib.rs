@@ -1,5 +1,14 @@
 #![crate_name = "phant"]
 
+//! # Rust Phant Library
+//!
+//! This is a library to use for interacting with a [phant.io](http://phant.io) server.
+//! A Phant server is hosted freely at [data.sparkfun.com](http://data.sparkfun.com).  This library
+//! is hosted [on github](https://github.com/freiguy1/phant-rust).
+//!
+//! It was originally created as a way to learn rust by creating a functional piece
+//! of software.
+
 extern crate url;
 
 use std::collections::hashmap::HashMap;
@@ -79,7 +88,7 @@ impl Phant {
     ///
     /// # Example
     /// ```
-    /// let mut phant = phant::Phant::new("data.sparkfun.com".to_string(), "123abc", "456def");
+    /// let mut phant = phant::Phant::new("data.sparkfun.com", "123abc", "456def");
     ///
     /// phant.add("apple_color", "red");
     /// let url = phant.get_url();
@@ -102,5 +111,52 @@ impl Phant {
             result_list.push(format!("{}={}", key, value));
         }
         url::encode(result_list.connect("&"))
+    }
+}
+
+#[cfg(test)]
+mod test {
+    use super::Phant;
+
+    #[test]
+    fn test_get_url() {
+        let expected = "http://data.com/input/pub?private_key=priv&color=red".to_string();
+        let p = basic_phant();
+        assert_eq!(p.row_data().len(), 1);
+        assert_eq!(p.get_url(), expected);
+        assert_eq!(p.row_data().len(), 1);
+    }
+
+    #[test]
+    fn test_row_data() {
+        let expected_key = "color".to_string();
+        let expected_value = "red".to_string();
+        let p = basic_phant();
+        let mut row_data = p.row_data();
+        assert_eq!(row_data.len(), 1);
+        assert_eq!(*row_data.get(&expected_key), expected_value);
+
+        // Test that row_data actually makes a clone of the data, and not returning it directly
+        row_data.insert("size".to_string(), "large".to_string());
+        assert_eq!(p.row_data().len(), 1);
+    }
+
+    #[test]
+    fn test_overwrite_column() {
+        let key = "color".to_string();
+        let first_value = "red".to_string();
+        let second_value = "green".to_string();
+        let mut p = basic_phant();
+        assert_eq!(*p.row_data().get(&key), first_value);
+
+        p.add(key.as_slice(), second_value.as_slice());
+        assert_eq!(p.row_data().len(), 1);
+        assert_eq!(p.row_data().get(&key), &second_value);
+    }
+
+    fn basic_phant() -> Phant {
+        let mut p = Phant::new("data.com", "pub", "priv");
+        p.add("color", "red");
+        p
     }
 }

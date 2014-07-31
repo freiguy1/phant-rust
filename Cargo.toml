@@ -3,3 +3,8 @@
 name = "phant"
 version = "0.0.1"
 authors = [ "ethan.frei@gmail.com" ]
+
+[[lib]]
+
+name = "phant"
+path = "src/lib.rs"
