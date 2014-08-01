@@ -7,7 +7,7 @@ use std::io::TcpStream;
 ///
 /// # Example
 /// ```
-/// let mut phant = phant::Phant::new("data.sparkfun.com", "123abc", "456def");
+/// let mut phant = phant::Phant::new("data.sparkfun.com", "your_public_key", "your_private_key");
 ///
 /// phant.add("computer_name", "my-computer");
 /// phant.add("external_ip", "123.321.111.222");
@@ -77,11 +77,11 @@ impl Phant {
     ///
     /// # Example
     /// ```
-    /// let mut phant = phant::Phant::new("data.sparkfun.com", "123abc", "456def");
+    /// let mut phant = phant::Phant::new("data.sparkfun.com", "your_public_key", "your_private_key");
     ///
     /// phant.add("apple_color", "red");
     /// let url = phant.get_url();
-    /// assert!(url.as_slice() == "http://data.sparkfun.com/input/123abc?private_key=456def&apple_color=red")
+    /// assert!(url.as_slice() == "http://data.sparkfun.com/input/your_public_key?private_key=your_private_key&apple_color=red")
     /// ```
     pub fn get_url(&self) -> String {
         format!("http://{}/input/{}?private_key={}&{}", self.hostname, self.public_key, self.private_key, self.data_query_string())

@@ -15,11 +15,12 @@ git = "https://github.com/freiguy1/phant-rust.git"
 To use the library, include the crate with `extern crate phant;` and then use it:
 
 ```
-let mut phant = phant::Phant::new("data.sparkfun.com", "123abc", "456def");
+let mut phant = phant::Phant::new("data.sparkfun.com", "your_public_key", "your_private_key");
 
-phant.add("computer_name", "my-computer");
-phant.add("external_ip", "123.321.111.222");
-phant.add("internal_ip", "192.168.1.104");
+//         COLUMN NAME        DATA VALUE
+phant.add("computer_name",   "my-computer");
+phant.add("external_ip",     "123.321.111.222");
+phant.add("internal_ip",     "192.168.1.104");
 
 phant.push().ok().expect("Pushing to server did not succeed");
 ```
