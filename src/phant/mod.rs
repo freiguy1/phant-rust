@@ -143,6 +143,14 @@ mod test {
         assert_eq!(p.row_data().get(&key), &second_value);
     }
 
+    #[test]
+    fn test_clear_local() {
+        let mut p = basic_phant();
+        assert!(p.row_data().len() > 0);
+        p.clear_local();
+        assert_eq!(p.row_data().len(), 0);
+    }
+
     fn basic_phant() -> Phant {
         let mut p = Phant::new("data.com", "pub", "priv");
         p.add("color", "red");
