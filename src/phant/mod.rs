@@ -2,6 +2,7 @@ extern crate url;
 
 use std::collections::hashmap::HashMap;
 use std::io::TcpStream;
+use self::url::percent_encoding::{ utf8_percent_encode, DEFAULT_ENCODE_SET };
 
 /// A structure which holds the data for a Phant data stream
 ///
@@ -99,7 +100,7 @@ impl Phant {
         for (key, value) in self.data.iter() {
             result_list.push(format!("{}={}", key, value));
         }
-        url::encode(result_list.connect("&"))
+        utf8_percent_encode(result_list.connect("&").as_slice(), DEFAULT_ENCODE_SET)
     }
 }
 

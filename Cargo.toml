@@ -8,3 +8,7 @@ authors = [ "ethan.frei@gmail.com" ]
 
 name = "phant"
 path = "src/lib.rs"
+
+[dependencies.url]
+
+git = "https://github.com/servo/rust-url"
