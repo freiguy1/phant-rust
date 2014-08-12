@@ -8,6 +8,6 @@ script:
   - rustc --version
   - cargo build
   - cargo test
-  - rustdoc -o doc src/lib.rs
+  - cargo doc
 after_script:
   - curl http://www.rust-ci.org/artifacts/put?t=$RUSTCI_TOKEN | sh
