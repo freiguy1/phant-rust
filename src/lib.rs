@@ -1,5 +1,6 @@
 #![crate_name = "phant"]
 
+
 //! # Rust Phant Library
 //!
 //! This is a library to use for interacting with a [phant.io](http://phant.io) server.
@@ -8,6 +9,9 @@
 //!
 //! It was originally created as a way to learn rust by creating a functional piece
 //! of software.
+
+
+extern crate url;
 
 pub use Phant = phant::Phant;
 
