@@ -3,6 +3,10 @@ phant-rust [![Build Status](https://travis-ci.org/freiguy1/phant-rust.svg?branch
 
 A library in rust for manipulating data on a [Phant](phant.io) server.  Check out the [generated documentation](http://www.rust-ci.org/freiguy1/phant-rust/doc/phant/) for detailed information.  A more thorough example is provided at `examples/main.rs`.
 
+### Depends on:
+
+- [rust-url](https://github.com/servo/rust-url)
+
 ### To use with cargo:
 
 In your project's Cargo.toml, include:
