@@ -4,7 +4,7 @@ name = "phant"
 version = "0.0.2"
 authors = [ "ethan.frei@gmail.com" ]
 
-[[lib]]
+[lib]
 
 name = "phant"
 path = "src/lib.rs"
