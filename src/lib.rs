@@ -13,6 +13,6 @@
 
 extern crate url;
 
-pub use Phant = phant::Phant;
+pub use phant::Phant as Phant;
 
 mod phant;
