@@ -123,7 +123,7 @@ mod test {
         let p = basic_phant();
         let mut row_data = p.row_data();
         assert_eq!(row_data.len(), 1);
-        assert_eq!(*row_data.get(&expected_key), expected_value);
+        assert_eq!(row_data[expected_key], expected_value);
 
         // Test that row_data actually makes a clone of the data, and not returning it directly
         row_data.insert("size".to_string(), "large".to_string());
@@ -136,11 +136,11 @@ mod test {
         let first_value = "red".to_string();
         let second_value = "green".to_string();
         let mut p = basic_phant();
-        assert_eq!(*p.row_data().get(&key), first_value);
+        assert_eq!(p.row_data()[key], first_value);
 
         p.add(key.as_slice(), second_value.as_slice());
         assert_eq!(p.row_data().len(), 1);
-        assert_eq!(p.row_data().get(&key), &second_value);
+        assert_eq!(p.row_data()[key], second_value);
     }
 
     #[test]
