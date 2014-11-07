@@ -1,5 +1,5 @@
 
-use std::collections::hashmap::HashMap;
+use std::collections::HashMap;
 use std::io::TcpStream;
 use url::percent_encoding::{ utf8_percent_encode, DEFAULT_ENCODE_SET };
 
@@ -51,7 +51,7 @@ impl Phant {
         let query_string = self.data_query_string();
         let request: String = format!("POST /input/{} HTTP/1.0\nPhant-Private-Key: {}\nContent-Type: application/x-www-form-urlencoded\nContent-Length: {}\n\n{}\n\n",
             self.public_key, self.private_key, query_string.len(), query_string);
-        let mut socket = try!(TcpStream::connect(self.hostname.as_slice(), 80));
+        let mut socket = try!(TcpStream::connect(format!("{0}:{1}", self.hostname, "80").as_slice()));
         try!(socket.write_str(request.as_slice()));
         let result = try!(socket.read_to_string());
         self.clear_local();
@@ -67,7 +67,7 @@ impl Phant {
     /// Clears the data on the server.
     pub fn clear_server(&mut self) -> ::std::io::IoResult<String> {
         let request: String = format!("DELETE /input/{} HTTP/1.0\nPhant-Private-Key: {}\n\n", self.public_key, self.private_key);
-        let mut socket = TcpStream::connect(self.hostname.as_slice(), 80).unwrap();
+        let mut socket = TcpStream::connect(format!("{0}:{1}", self.hostname, "80").as_slice()).unwrap();
         try!(socket.write_str(request.as_slice()));
         socket.read_to_string()
     }
