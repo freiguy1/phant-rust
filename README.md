@@ -11,9 +11,9 @@ A library in rust for manipulating data on a [Phant](phant.io) server.  Check ou
 
 In your project's Cargo.toml, include:
 ```toml
-[dependencies.phant]
+[dependencies]
 
-git = "https://github.com/freiguy1/phant-rust.git"
+url = "~0.0.2"
 ```
 
 To use the library, include the crate with `extern crate phant;` and then use it:
