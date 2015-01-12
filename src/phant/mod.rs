@@ -1,3 +1,5 @@
+#![allow(unstable)]
+
 
 use std::collections::HashMap;
 use std::io::TcpStream;
@@ -77,6 +79,7 @@ impl Phant {
     ///
     /// # Example
     /// ```
+    /// #![allow(unstable)]
     /// let mut phant = phant::Phant::new("data.sparkfun.com", "your_public_key", "your_private_key");
     ///
     /// phant.add("apple_color", "red");
