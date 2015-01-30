@@ -2,7 +2,7 @@
 
 
 use std::collections::HashMap;
-use std::io::TcpStream;
+use std::old_io::TcpStream;
 use url::percent_encoding::{ utf8_percent_encode, DEFAULT_ENCODE_SET };
 
 /// A structure which holds the data for a Phant data stream
@@ -49,7 +49,7 @@ impl Phant {
     ///
     /// Returns an [IoResult](http://doc.rust-lang.org/std/io/type.IoResult.html) where a successful
     /// push will return the response from the server in `String` form.
-    pub fn push(&mut self) -> ::std::io::IoResult<String> {
+    pub fn push(&mut self) -> ::std::old_io::IoResult<String> {
         let query_string = self.data_query_string();
         let request: String = format!("POST /input/{} HTTP/1.0\nPhant-Private-Key: {}\nContent-Type: application/x-www-form-urlencoded\nContent-Length: {}\n\n{}\n\n",
             self.public_key, self.private_key, query_string.len(), query_string);
@@ -67,7 +67,7 @@ impl Phant {
     }
 
     /// Clears the data on the server.
-    pub fn clear_server(&mut self) -> ::std::io::IoResult<String> {
+    pub fn clear_server(&mut self) -> ::std::old_io::IoResult<String> {
         let request: String = format!("DELETE /input/{} HTTP/1.0\nPhant-Private-Key: {}\n\n", self.public_key, self.private_key);
         let mut socket = TcpStream::connect(format!("{0}:{1}", self.hostname, "80").as_slice()).unwrap();
         try!(socket.write_str(request.as_slice()));
