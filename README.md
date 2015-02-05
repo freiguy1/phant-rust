@@ -13,7 +13,7 @@ In your project's Cargo.toml, include:
 ```toml
 [dependencies]
 
-url = "~0.0.2"
+phant = "*"
 ```
 
 To use the library, include the crate with `extern crate phant;` and then use it:
