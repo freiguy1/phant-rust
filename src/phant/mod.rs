@@ -1,4 +1,3 @@
-#![allow(unstable)]
 
 
 use std::collections::HashMap;
@@ -18,7 +17,7 @@ use url::percent_encoding::{ utf8_percent_encode, DEFAULT_ENCODE_SET };
 /// phant.push().ok().expect("Pushing to server did not succeed");
 /// ```
 
-#[derive(Show)]
+#[derive(Debug)]
 pub struct Phant {
     hostname: String,
     public_key: String,
