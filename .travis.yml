@@ -10,5 +10,3 @@ after_script:
   - cargo doc
   - curl http://www.rust-ci.org/artifacts/put?t=$RUSTCI_TOKEN | sh
 
-before_script:
-  - cargo update
