@@ -1,5 +1,5 @@
 #![crate_name = "phant"]
-#![feature(collections, core, old_io)]
+#![feature(collections, convert)]
 
 
 //! # Rust Phant Library

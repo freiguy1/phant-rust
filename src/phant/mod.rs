@@ -1,8 +1,9 @@
 
-
 use std::collections::HashMap;
-use std::old_io::TcpStream;
+use std::net::TcpStream;
+use std::io::{ Read, Write };
 use url::percent_encoding::{ utf8_percent_encode, DEFAULT_ENCODE_SET };
+use std::convert::AsRef;
 
 /// A structure which holds the data for a Phant data stream
 ///
@@ -48,13 +49,14 @@ impl Phant {
     ///
     /// Returns an [IoResult](http://doc.rust-lang.org/std/io/type.IoResult.html) where a successful
     /// push will return the response from the server in `String` form.
-    pub fn push(&mut self) -> ::std::old_io::IoResult<String> {
+    pub fn push(&mut self) -> ::std::io::Result<String> {
         let query_string = self.data_query_string();
         let request: String = format!("POST /input/{} HTTP/1.0\nPhant-Private-Key: {}\nContent-Type: application/x-www-form-urlencoded\nContent-Length: {}\n\n{}\n\n",
             self.public_key, self.private_key, query_string.len(), query_string);
-        let mut socket = try!(TcpStream::connect(format!("{0}:{1}", self.hostname, "80").as_slice()));
-        try!(socket.write_str(request.as_slice()));
-        let result = try!(socket.read_to_string());
+        let mut socket = try!(TcpStream::connect(&*format!("{0}:{1}", self.hostname, "80")));
+        try!(socket.write_all(request.as_bytes()));
+        let mut result = String::new();
+        try!(socket.read_to_string(&mut result));
         self.clear_local();
         Ok(result)
     }
@@ -66,11 +68,13 @@ impl Phant {
     }
 
     /// Clears the data on the server.
-    pub fn clear_server(&mut self) -> ::std::old_io::IoResult<String> {
+    pub fn clear_server(&mut self) -> ::std::io::Result<String> {
         let request: String = format!("DELETE /input/{} HTTP/1.0\nPhant-Private-Key: {}\n\n", self.public_key, self.private_key);
-        let mut socket = TcpStream::connect(format!("{0}:{1}", self.hostname, "80").as_slice()).unwrap();
-        try!(socket.write_str(request.as_slice()));
-        socket.read_to_string()
+        let mut socket = TcpStream::connect(&*format!("{0}:{1}", self.hostname, "80")).unwrap();
+        try!(socket.write_all(request.as_bytes()));
+        let mut result = String::new();
+        try!(socket.read_to_string(&mut result));
+        Ok(result)
     }
 
     /// Gets a formatted URL in string form for adding the current row to the server.
@@ -78,12 +82,12 @@ impl Phant {
     ///
     /// # Example
     /// ```
-    /// #![allow(unstable)]
+    /// #![feature(collections)]
     /// let mut phant = phant::Phant::new("data.sparkfun.com", "your_public_key", "your_private_key");
     ///
     /// phant.add("apple_color", "red");
     /// let url = phant.get_url();
-    /// assert!(url.as_slice() == "http://data.sparkfun.com/input/your_public_key?private_key=your_private_key&apple_color=red")
+    /// assert_eq!(url, String::from_str("http://data.sparkfun.com/input/your_public_key?private_key=your_private_key&apple_color=red"))
     /// ```
     pub fn get_url(&self) -> String {
         format!("http://{}/input/{}?private_key={}&{}", self.hostname, self.public_key, self.private_key, self.data_query_string())
@@ -101,7 +105,7 @@ impl Phant {
         for (key, value) in self.data.iter() {
             result_list.push(format!("{}={}", key, value));
         }
-        utf8_percent_encode(result_list.connect("&").as_slice(), DEFAULT_ENCODE_SET)
+        utf8_percent_encode(result_list.connect("&").as_ref(), DEFAULT_ENCODE_SET)
     }
 }
 
@@ -125,7 +129,7 @@ mod test {
         let p = basic_phant();
         let mut row_data = p.row_data();
         assert_eq!(row_data.len(), 1);
-        assert_eq!(row_data[expected_key], expected_value);
+        assert_eq!(row_data[&expected_key], expected_value);
 
         // Test that row_data actually makes a clone of the data, and not returning it directly
         row_data.insert("size".to_string(), "large".to_string());
@@ -138,11 +142,11 @@ mod test {
         let first_value = "red".to_string();
         let second_value = "green".to_string();
         let mut p = basic_phant();
-        assert_eq!(p.row_data()[key], first_value);
+        assert_eq!(p.row_data()[&key], first_value);
 
-        p.add(key.as_slice(), second_value.as_slice());
+        p.add(&key, &second_value);
         assert_eq!(p.row_data().len(), 1);
-        assert_eq!(p.row_data()[key], second_value);
+        assert_eq!(p.row_data()[&key], second_value);
     }
 
     #[test]
