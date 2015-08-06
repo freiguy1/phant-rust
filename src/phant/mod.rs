@@ -29,9 +29,9 @@ pub struct Phant {
 impl Phant {
     pub fn new(hostname: &str, public_key: &str, private_key: &str) -> Phant {
         Phant {
-            hostname: String::from_str(hostname),
-            public_key: String::from_str(public_key),
-            private_key: String::from_str(private_key),
+            hostname: String::from(hostname),
+            public_key: String::from(public_key),
+            private_key: String::from(private_key),
             data: HashMap::new()
         }
     }
