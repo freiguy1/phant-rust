@@ -82,12 +82,11 @@ impl Phant {
     ///
     /// # Example
     /// ```
-    /// #![feature(collections)]
     /// let mut phant = phant::Phant::new("data.sparkfun.com", "your_public_key", "your_private_key");
     ///
     /// phant.add("apple_color", "red");
     /// let url = phant.get_url();
-    /// assert_eq!(url, String::from_str("http://data.sparkfun.com/input/your_public_key?private_key=your_private_key&apple_color=red"))
+    /// assert_eq!(url, String::from("http://data.sparkfun.com/input/your_public_key?private_key=your_private_key&apple_color=red"))
     /// ```
     pub fn get_url(&self) -> String {
         format!("http://{}/input/{}?private_key={}&{}", self.hostname, self.public_key, self.private_key, self.data_query_string())
