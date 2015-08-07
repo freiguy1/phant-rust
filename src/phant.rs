@@ -5,28 +5,17 @@ use std::convert::{ From, AsRef };
 
 use hyper::Client;
 use hyper::header::{ qitem, Accept, ContentType };
-use hyper::mime::{Mime, TopLevel, SubLevel, Attr, Value};
+use hyper::mime::{Mime, TopLevel, SubLevel, Attr };
+use hyper::mime::Value as HyperValue;
 
 use serde::json::builder::ObjectBuilder;
 use serde::json;
 
 use ::error::Error;
 
-
 header! { (PhantPrivateKey, "Phant-Private-Key") => [String] }
 
-/// A structure which holds the data for a Phant data stream
-///
-/// # Example
-/// ```
-/// let mut phant = phant::Phant::new("http://data.sparkfun.com", "Jxyjr7DmxwTD5dG1D1Kv",
-/// "gzgnB4VazkIg7GN1g1qA");
-///
-/// phant.add("brewTemp", "posting from the rust library @ github.com/freiguy1/phant-rust");
-///
-/// phant.push().ok().expect("Pushing to server did not succeed");
-/// ```
-
+/// Contains data for creating a new stream
 pub struct StreamSpec {
     pub title: String,
     pub description: String,
@@ -44,6 +33,19 @@ impl StreamSpec {
         json::to_string(&object_builder.unwrap()).ok().unwrap()
     }
 }
+
+
+/// A structure which holds the data for a Phant data stream
+///
+/// # Example
+/// ```
+/// let mut phant = phant::Phant::new("http://data.sparkfun.com", "Jxyjr7DmxwTD5dG1D1Kv",
+/// "gzgnB4VazkIg7GN1g1qA");
+///
+/// phant.add("brewTemp", "posting from the rust library @ github.com/freiguy1/phant-rust");
+///
+/// phant.push().ok().expect("Pushing to server did not succeed");
+/// ```
 
 #[derive(Debug)]
 pub struct Phant {
@@ -64,13 +66,31 @@ impl Phant {
             .header(ContentType::json())
             .header(Accept(vec![
                            qitem(Mime(TopLevel::Application, SubLevel::Json,
-                                      vec![(Attr::Charset, Value::Utf8)]))]))
+                                      vec![(Attr::Charset, HyperValue::Utf8)]))]))
             .send()
             );
         let mut response_body = String::new();
         try!(response.read_to_string(&mut response_body));
-        println!("{}", response_body);
-        Err(Error { error: String::from("hello") })
+        let data: json::Value = json::from_str(&response_body).unwrap();
+        let data_object = data.as_object().unwrap();
+        let success_value = data_object.get("success").unwrap();
+        match success_value.as_boolean().unwrap() {
+            true => {
+                let public_key_value = data_object.get("publicKey").unwrap();
+                let private_key_value = data_object.get("privateKey").unwrap();
+                // let delete_key_value = data_object.get("deleteKey").unwrap();
+                Ok(Phant {
+                    hostname: hostname.to_string(),
+                    public_key: public_key_value.as_string().unwrap().to_string(),
+                    private_key: private_key_value.as_string().unwrap().to_string(),
+                    data: HashMap::new()
+                })
+            }
+            false => {
+                let message_value = data_object.get("message").unwrap();
+                Err(Error { error: message_value.as_string().unwrap().to_string() })
+            }
+        }
     }
 
     pub fn new(hostname: &str, public_key: &str, private_key: &str) -> Phant {
@@ -150,6 +170,16 @@ impl Phant {
         self.data.clone()
     }
 
+    /// Returns a clone of the public key for this phant struct
+    pub fn public_key(&self) -> String {
+        self.public_key.clone()
+    }
+
+    /// Returns a clone of the private key for this phant struct
+    pub fn private_key(&self) -> String {
+        self.private_key.clone()
+    }
+
     fn data_query_string(&self) -> String {
         let mut result_list = Vec::new();
         for (key, value) in self.data.iter() {
@@ -157,6 +187,7 @@ impl Phant {
         }
         utf8_percent_encode(result_list.connect("&").as_ref(), DEFAULT_ENCODE_SET)
     }
+
 }
 
 #[cfg(test)]

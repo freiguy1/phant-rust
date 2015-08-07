@@ -19,7 +19,7 @@ phant = "*"
 To use the library, include the crate with `extern crate phant;` and then use it:
 
 ```rust
-let mut phant = phant::Phant::new("data.sparkfun.com", "your_public_key", "your_private_key");
+let mut phant = phant::Phant::new("http://data.sparkfun.com", "your_public_key", "your_private_key");
 
 //         COLUMN NAME        DATA VALUE
 phant.add("computer_name",   "my-computer");

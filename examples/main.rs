@@ -28,12 +28,29 @@ fn main() {
     // The number of columns in the row should now be 0.
     assert!(phant.row_data().len() == 0);
 
-    phant::Phant::create_stream("https://data.sparkfun.com",
-                                phant::StreamSpec {
-                                    title: "Hello World".to_string(),
-                                    description: "My description".to_string(),
-                                    fields: vec!["a".to_string(), "b".to_string()],
-                                    hidden: false
-                                });
+
+    // Creating a brand new stream
+    let phant_result = phant::Phant::create_stream("https://data.sparkfun.com",
+        phant::StreamSpec {
+            title: "My Title".to_string(),
+            description: "My description".to_string(),
+            fields: vec!["a".to_string(), "b".to_string()],
+            hidden: true 
+        });
+
+    if let Err(e) = phant_result {
+        panic!("{}", e);
+    }
+
+    let mut phant = phant_result.ok().unwrap();
+
+    phant.add("a", "1234");
+    phant.add("b", "Chicago");
+    match phant.push() {
+        Ok(result) => println!("------- result -------\n{}", result),
+        Err(e) => println!("-------- error --------\n{}", e)
+    }
+
+    println!("public: {} private: {}", phant.public_key(), phant.private_key());
 
 }
