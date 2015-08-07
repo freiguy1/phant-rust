@@ -4,9 +4,8 @@ rust: nightly
 
 env:
   global:
-    - secure: dmTlUsfGIwrpcY7QWu1d+YiCiGvwMgUjrorAIDTKBtYivmaSEwLqm1O7n+7aHks+j5Xy6eXfBJwpv0xsiutDeEW0h7KDlqKF2MnRTY/tPgr1W9n0x9mAHizB+473MprmTLKObsrU5HFNIK20W31Nz9HGCYPN/Cxq3RaWGpfyU2Q=
+    - secure: eSpHGxGT3pFxoWK9ov8IOFdZrfVUUnjsFDU/t5ILWGXj9sL3Uek/kkYn1fYB8HWKWBtvh9PeyoU/GIbczmBPEhali97NMIQvwM/sznkVyQtfxOAbvQ0bbXjmdrKIgyVc2TRfz1fBESui9ejexcZYkr56ywpCljFhg4LJ8U7ZK5E=
 
 after_script:
-  - cargo doc
   - curl http://www.rust-ci.org/artifacts/put?t=$RUSTCI_TOKEN | sh
 
