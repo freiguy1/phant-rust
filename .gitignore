@@ -2,3 +2,4 @@
 /target
 Cargo.lock
 *.swp
+/deploy_docs.sh
