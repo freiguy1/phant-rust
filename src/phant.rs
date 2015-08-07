@@ -3,11 +3,6 @@ use std::io::Read;
 use url::percent_encoding::{ utf8_percent_encode, DEFAULT_ENCODE_SET };
 use std::convert::{ From, AsRef };
 
-use hyper::Client;
-use hyper::header::{ qitem, Accept, ContentType };
-use hyper::mime::{Mime, TopLevel, SubLevel, Attr };
-use hyper::mime::Value as HyperValue;
-
 use serde::json::builder::ObjectBuilder;
 use serde::json;
 
@@ -57,18 +52,23 @@ pub struct Phant {
 
 impl Phant {
 
+    /// Create a brand new stream on a phant server.
+    ///
+    /// # Example
+    /// ```
+    /// let phant_result = phant::Phant::create_stream("https://data.sparkfun.com",
+    ///     phant::StreamSpec {
+    ///         title: "My Title".to_string(),
+    ///         description: "My description".to_string(),
+    ///         fields: vec!["a".to_string(), "b".to_string()],
+    ///         hidden: true 
+    ///     });
+    ///
+    /// assert!(phant_result.is_ok());
+    /// ```
     pub fn create_stream(hostname: &str, spec: StreamSpec) -> Result<Phant, Error> {
         let serialized_spec = spec.serialize();
-        let client = Client::new();
-        let mut response = try!(client
-            .post(&format!("{}/streams", hostname))
-            .body(&serialized_spec)
-            .header(ContentType::json())
-            .header(Accept(vec![
-                           qitem(Mime(TopLevel::Application, SubLevel::Json,
-                                      vec![(Attr::Charset, HyperValue::Utf8)]))]))
-            .send()
-            );
+        let mut response = try!(::web::create_stream(&hostname.to_string(), &serialized_spec));
         let mut response_body = String::new();
         try!(response.read_to_string(&mut response_body));
         let data: json::Value = json::from_str(&response_body).unwrap();
@@ -88,7 +88,7 @@ impl Phant {
             }
             false => {
                 let message_value = data_object.get("message").unwrap();
-                Err(Error { error: message_value.as_string().unwrap().to_string() })
+                Err(Error::Phant(message_value.as_string().unwrap().to_string()))
             }
         }
     }
@@ -116,14 +116,10 @@ impl Phant {
     /// Returns a Result with error type being custom type phant::Error
     pub fn push(&mut self) -> Result<String, Error> {
         let query_string = self.data_query_string();
-        let client = Client::new();
-        let mut post_response = try!(client
-            .post(&format!("{}/input/{}", self.hostname, self.public_key))
-            .body(&query_string)
-            .header(PhantPrivateKey(self.private_key.clone()))
-            .header(ContentType::form_url_encoded())
-            .send()
-            );
+        let mut post_response = try!(::web::push_data(&self.hostname,
+                                                     &self.public_key,
+                                                     &self.private_key,
+                                                     &query_string));
         let mut response_body = String::new();
         try!(post_response.read_to_string(&mut response_body));
         self.clear_local();
@@ -138,13 +134,11 @@ impl Phant {
 
     /// Clears the data on the server.
     pub fn clear_server(&mut self) -> Result<String, Error> {
-        let client = Client::new();
-        let mut delete_response = try!(client
-            .delete(&format!("{}/input/{}", self.hostname, self.public_key))
-            .header(PhantPrivateKey(self.private_key.clone()))
-            .send());
+        let mut clear_response = try!(::web::clear_data(&self.hostname,
+                                                     &self.public_key,
+                                                     &self.private_key));
         let mut response_body = String::new();
-        try!(delete_response.read_to_string(&mut response_body));
+        try!(clear_response.read_to_string(&mut response_body));
         Ok(response_body)
     }
 

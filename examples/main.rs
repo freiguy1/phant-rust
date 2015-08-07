@@ -42,8 +42,8 @@ fn main() {
         panic!("{}", e);
     }
 
+    // Push to this new stream
     let mut phant = phant_result.ok().unwrap();
-
     phant.add("a", "1234");
     phant.add("b", "Chicago");
     match phant.push() {
@@ -52,5 +52,4 @@ fn main() {
     }
 
     println!("public: {} private: {}", phant.public_key(), phant.private_key());
-
 }

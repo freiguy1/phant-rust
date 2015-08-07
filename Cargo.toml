@@ -1,11 +1,11 @@
 [package]
 
 name = "phant"
-version = "0.1.0"
+version = "0.1.1"
 authors = [ "ethan.frei@gmail.com" ]
 description = "A library for manipulating data on a http://phant.io server."
 
-documentation = "http://www.rust-ci.org/freiguy1/phant-rust/doc/phant/"
+documentation = "http://static.ethanfrei.com/phant/phant"
 homepage = "https://github.com/freiguy1/phant-rust"
 repository = "https://github.com/freiguy1/phant-rust"
 readme = "README.md"
