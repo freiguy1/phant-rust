@@ -9,15 +9,12 @@
 //! It was originally created as a way to learn rust by creating a functional piece
 //! of software.
 
-
+extern crate serde;
 extern crate url;
 #[macro_use] extern crate hyper;
 
-pub use phant::Phant as Phant;
+pub use phant::{ StreamSpec, Phant };
 
+
+pub mod error;
 mod phant;
-
-
-pub mod error {
-    pub use phant::error::Error as Error;
-}

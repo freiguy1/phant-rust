@@ -4,11 +4,13 @@ use url::percent_encoding::{ utf8_percent_encode, DEFAULT_ENCODE_SET };
 use std::convert::{ From, AsRef };
 
 use hyper::Client;
-use hyper::header::ContentType;
+use hyper::header::{ qitem, Accept, ContentType };
+use hyper::mime::{Mime, TopLevel, SubLevel, Attr, Value};
 
-use ::phant::error::Error;
+use serde::json::builder::ObjectBuilder;
+use serde::json;
 
-pub mod error;
+use ::error::Error;
 
 
 header! { (PhantPrivateKey, "Phant-Private-Key") => [String] }
@@ -25,6 +27,24 @@ header! { (PhantPrivateKey, "Phant-Private-Key") => [String] }
 /// phant.push().ok().expect("Pushing to server did not succeed");
 /// ```
 
+pub struct StreamSpec {
+    pub title: String,
+    pub description: String,
+    pub fields: Vec<String>,
+    pub hidden: bool
+}
+
+impl StreamSpec {
+    fn serialize(&self) -> String {
+        let object_builder = ObjectBuilder::new()
+            .insert("title".to_string(), &self.title)
+            .insert("description".to_string(), &self.description)
+            .insert("fields".to_string(), self.fields.connect(","))
+            .insert("hidden".to_string(), if self.hidden { 1 } else { 0 });
+        json::to_string(&object_builder.unwrap()).ok().unwrap()
+    }
+}
+
 #[derive(Debug)]
 pub struct Phant {
     hostname: String,
@@ -34,6 +54,25 @@ pub struct Phant {
 }
 
 impl Phant {
+
+    pub fn create_stream(hostname: &str, spec: StreamSpec) -> Result<Phant, Error> {
+        let serialized_spec = spec.serialize();
+        let client = Client::new();
+        let mut response = try!(client
+            .post(&format!("{}/streams", hostname))
+            .body(&serialized_spec)
+            .header(ContentType::json())
+            .header(Accept(vec![
+                           qitem(Mime(TopLevel::Application, SubLevel::Json,
+                                      vec![(Attr::Charset, Value::Utf8)]))]))
+            .send()
+            );
+        let mut response_body = String::new();
+        try!(response.read_to_string(&mut response_body));
+        println!("{}", response_body);
+        Err(Error { error: String::from("hello") })
+    }
+
     pub fn new(hostname: &str, public_key: &str, private_key: &str) -> Phant {
         Phant {
             hostname: String::from(hostname),

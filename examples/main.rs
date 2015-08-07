@@ -28,4 +28,12 @@ fn main() {
     // The number of columns in the row should now be 0.
     assert!(phant.row_data().len() == 0);
 
+    phant::Phant::create_stream("https://data.sparkfun.com",
+                                phant::StreamSpec {
+                                    title: "Hello World".to_string(),
+                                    description: "My description".to_string(),
+                                    fields: vec!["a".to_string(), "b".to_string()],
+                                    hidden: false
+                                });
+
 }
