@@ -1,19 +1,26 @@
-
 use std::collections::HashMap;
-use std::net::TcpStream;
-use std::io::{ Read, Write };
+use std::io::Read;
 use url::percent_encoding::{ utf8_percent_encode, DEFAULT_ENCODE_SET };
-use std::convert::AsRef;
+use std::convert::{ From, AsRef };
+
+use hyper::Client;
+use hyper::header::ContentType;
+
+use ::phant::error::Error;
+
+pub mod error;
+
+
+header! { (PhantPrivateKey, "Phant-Private-Key") => [String] }
 
 /// A structure which holds the data for a Phant data stream
 ///
 /// # Example
 /// ```
-/// let mut phant = phant::Phant::new("data.sparkfun.com", "your_public_key", "your_private_key");
+/// let mut phant = phant::Phant::new("http://data.sparkfun.com", "Jxyjr7DmxwTD5dG1D1Kv",
+/// "gzgnB4VazkIg7GN1g1qA");
 ///
-/// phant.add("computer_name", "my-computer");
-/// phant.add("external_ip", "123.321.111.222");
-/// phant.add("internal_ip", "192.168.1.104");
+/// phant.add("brewTemp", "posting from the rust library @ github.com/freiguy1/phant-rust");
 ///
 /// phant.push().ok().expect("Pushing to server did not succeed");
 /// ```
@@ -47,18 +54,21 @@ impl Phant {
     /// to the phant server located at `hostname`. The local row will then be cleared so `add`
     /// can be called again to repeat the process.
     ///
-    /// Returns an [IoResult](http://doc.rust-lang.org/std/io/type.IoResult.html) where a successful
-    /// push will return the response from the server in `String` form.
-    pub fn push(&mut self) -> ::std::io::Result<String> {
+    /// Returns a Result with error type being custom type phant::Error
+    pub fn push(&mut self) -> Result<String, Error> {
         let query_string = self.data_query_string();
-        let request: String = format!("POST /input/{} HTTP/1.0\nPhant-Private-Key: {}\nContent-Type: application/x-www-form-urlencoded\nContent-Length: {}\n\n{}\n\n",
-            self.public_key, self.private_key, query_string.len(), query_string);
-        let mut socket = try!(TcpStream::connect(&*format!("{0}:{1}", self.hostname, "80")));
-        try!(socket.write_all(request.as_bytes()));
-        let mut result = String::new();
-        try!(socket.read_to_string(&mut result));
+        let client = Client::new();
+        let mut post_response = try!(client
+            .post(&format!("{}/input/{}", self.hostname, self.public_key))
+            .body(&query_string)
+            .header(PhantPrivateKey(self.private_key.clone()))
+            .header(ContentType::form_url_encoded())
+            .send()
+            );
+        let mut response_body = String::new();
+        try!(post_response.read_to_string(&mut response_body));
         self.clear_local();
-        Ok(result)
+        Ok(response_body)
     }
 
     /// Clears the data locally.  Any key-value pairs that have been added since creation or
@@ -68,13 +78,15 @@ impl Phant {
     }
 
     /// Clears the data on the server.
-    pub fn clear_server(&mut self) -> ::std::io::Result<String> {
-        let request: String = format!("DELETE /input/{} HTTP/1.0\nPhant-Private-Key: {}\n\n", self.public_key, self.private_key);
-        let mut socket = TcpStream::connect(&*format!("{0}:{1}", self.hostname, "80")).unwrap();
-        try!(socket.write_all(request.as_bytes()));
-        let mut result = String::new();
-        try!(socket.read_to_string(&mut result));
-        Ok(result)
+    pub fn clear_server(&mut self) -> Result<String, Error> {
+        let client = Client::new();
+        let mut delete_response = try!(client
+            .delete(&format!("{}/input/{}", self.hostname, self.public_key))
+            .header(PhantPrivateKey(self.private_key.clone()))
+            .send());
+        let mut response_body = String::new();
+        try!(delete_response.read_to_string(&mut response_body));
+        Ok(response_body)
     }
 
     /// Gets a formatted URL in string form for adding the current row to the server.

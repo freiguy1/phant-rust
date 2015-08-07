@@ -11,7 +11,13 @@
 
 
 extern crate url;
+#[macro_use] extern crate hyper;
 
 pub use phant::Phant as Phant;
 
 mod phant;
+
+
+pub mod error {
+    pub use phant::error::Error as Error;
+}

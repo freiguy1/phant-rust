@@ -7,7 +7,7 @@ fn main() {
     // Create a phant object for sparkfun's publically writable repository.
     // The three params are hostname, public key, and private key (provided to you
     // by the phant server).
-    let mut phant = Phant::new("data.sparkfun.com", "Jxyjr7DmxwTD5dG1D1Kv", "gzgnB4VazkIg7GN1g1qA");
+    let mut phant = Phant::new("http://data.sparkfun.com", "Jxyjr7DmxwTD5dG1D1Kv", "gzgnB4VazkIg7GN1g1qA");
 
     // Add one key/value pair of data.  The keys need to be same
     phant.add("brewTemp", "posting from the rust library @ github.com/freiguy1/phant-rust");
