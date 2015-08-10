@@ -10,6 +10,7 @@
 //! of software.
 
 extern crate serde;
+extern crate serde_json;
 extern crate url;
 #[macro_use] extern crate hyper;
 

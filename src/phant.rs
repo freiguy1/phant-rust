@@ -3,8 +3,8 @@ use std::io::Read;
 use url::percent_encoding::{ utf8_percent_encode, DEFAULT_ENCODE_SET };
 use std::convert::{ From, AsRef };
 
-use serde::json::builder::ObjectBuilder;
-use serde::json;
+use serde_json::builder::ObjectBuilder;
+use serde_json as json;
 
 use ::error::Error;
 

@@ -19,7 +19,7 @@ phant = "*"
 To use the library, include the crate with `extern crate phant;` and then use it:
 
 ```rust
-let mut phant = phant::Phant::new("http://data.sparkfun.com", "your_public_key", "your_private_key");
+let mut phant = phant::Phant::new("http://data.sparkfun.com", "your_public_key", "your_private_key", Some("your_delete_key"));
 
 //         COLUMN NAME        DATA VALUE
 phant.add("computer_name",   "my-computer");
@@ -28,3 +28,5 @@ phant.add("internal_ip",     "192.168.1.104");
 
 phant.push().ok().expect("Pushing to server did not succeed");
 ```
+
+As you can see, the delete key is optional, but if you attempt `delete_stream()`, an error will be thrown.
