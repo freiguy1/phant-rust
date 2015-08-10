@@ -6,6 +6,7 @@ use hyper::mime::{Mime, TopLevel, SubLevel, Attr };
 use hyper::mime::Value as HyperValue;
 
 header! { (PhantPrivateKey, "Phant-Private-Key") => [String] }
+header! { (PhantDeleteKey, "Phant-Delete-Key") => [String] }
 
 pub fn create_stream(hostname: &String, body: &String) -> Result<Response, Error> {
     let client = Client::new();
@@ -44,6 +45,17 @@ pub fn clear_data(hostname: &String,
     let response = client
         .delete(&format!("{}/input/{}", hostname, public_key))
         .header(PhantPrivateKey(private_key.clone()))
+        .send();
+    response
+}
+
+pub fn delete_stream(hostname: &String,
+                     public_key: &String,
+                     delete_key: &String) -> Result<Response, Error> {
+    let client = Client::new();
+    let response = client
+        .delete(&format!("{}/input/{}", hostname, public_key))
+        .header(PhantDeleteKey(delete_key.clone()))
         .send();
     response
 }

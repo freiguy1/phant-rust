@@ -15,16 +15,30 @@ pub struct StreamSpec {
     pub title: String,
     pub description: String,
     pub fields: Vec<String>,
-    pub hidden: bool
+    pub hidden: bool,
+    pub alias: Option<String>,
+    pub tags: Option<Vec<String>>
 }
 
 impl StreamSpec {
     fn serialize(&self) -> String {
-        let object_builder = ObjectBuilder::new()
+        let mut object_builder = ObjectBuilder::new()
             .insert("title".to_string(), &self.title)
             .insert("description".to_string(), &self.description)
             .insert("fields".to_string(), self.fields.connect(","))
             .insert("hidden".to_string(), if self.hidden { 1 } else { 0 });
+        if let Some(ref alias) = self.alias {
+            object_builder = object_builder.insert(
+                "alias".to_string(),
+                &alias);
+        }
+        if let Some(ref tags) = self.tags {
+            if tags.len() > 0 {
+                object_builder = object_builder.insert(
+                    "tags".to_string(),
+                    tags.connect(","));
+            }
+        }
         json::to_string(&object_builder.unwrap()).ok().unwrap()
     }
 }
@@ -34,8 +48,8 @@ impl StreamSpec {
 ///
 /// # Example
 /// ```
-/// let mut phant = phant::Phant::new("http://data.sparkfun.com", "Jxyjr7DmxwTD5dG1D1Kv",
-/// "gzgnB4VazkIg7GN1g1qA");
+/// let mut phant = phant::Phant::new("https://data.sparkfun.com", "Jxyjr7DmxwTD5dG1D1Kv",
+/// "gzgnB4VazkIg7GN1g1qA", None);
 ///
 /// phant.add("brewTemp", "posting from the rust library @ github.com/freiguy1/phant-rust");
 ///
@@ -47,6 +61,7 @@ pub struct Phant {
     hostname: String,
     public_key: String,
     private_key: String,
+    delete_key: Option<String>,
     data: HashMap<String, String>
 }
 
@@ -61,10 +76,17 @@ impl Phant {
     ///         title: "My Title".to_string(),
     ///         description: "My description".to_string(),
     ///         fields: vec!["a".to_string(), "b".to_string()],
-    ///         hidden: true 
+    ///         hidden: true,
+    ///         tags: None,
+    ///         alias: None
     ///     });
-    ///
+    /// 
     /// assert!(phant_result.is_ok());
+    ///
+    /// // Clean up!
+    /// let delete_result = phant_result.ok().unwrap().delete_stream();
+    ///
+    /// assert!(delete_result.is_ok());
     /// ```
     pub fn create_stream(hostname: &str, spec: StreamSpec) -> Result<Phant, Error> {
         let serialized_spec = spec.serialize();
@@ -78,11 +100,12 @@ impl Phant {
             true => {
                 let public_key_value = data_object.get("publicKey").unwrap();
                 let private_key_value = data_object.get("privateKey").unwrap();
-                // let delete_key_value = data_object.get("deleteKey").unwrap();
+                let delete_key_value = data_object.get("deleteKey").unwrap();
                 Ok(Phant {
                     hostname: hostname.to_string(),
                     public_key: public_key_value.as_string().unwrap().to_string(),
                     private_key: private_key_value.as_string().unwrap().to_string(),
+                    delete_key: Some(delete_key_value.as_string().unwrap().to_string()),
                     data: HashMap::new()
                 })
             }
@@ -93,12 +116,29 @@ impl Phant {
         }
     }
 
-    pub fn new(hostname: &str, public_key: &str, private_key: &str) -> Phant {
+    pub fn new(
+        hostname: &str,
+        public_key: &str,
+        private_key: &str,
+        delete_key: Option<&str>) -> Phant {
         Phant {
             hostname: String::from(hostname),
             public_key: String::from(public_key),
             private_key: String::from(private_key),
+            delete_key: delete_key.map(|dk| dk.to_string()),
             data: HashMap::new()
+        }
+    }
+
+    pub fn delete_stream(&self) -> Result<(), Error> {
+        if let Some(ref delete_key) = self.delete_key {
+            try!(::web::delete_stream(
+                    &self.hostname,
+                    &self.public_key,
+                    &delete_key));
+            Ok(())
+        } else {
+            Err(Error::Phant("Delete key not provided".to_string()))
         }
     }
 
@@ -147,14 +187,14 @@ impl Phant {
     ///
     /// # Example
     /// ```
-    /// let mut phant = phant::Phant::new("data.sparkfun.com", "your_public_key", "your_private_key");
+    /// let mut phant = phant::Phant::new("https://data.sparkfun.com", "your_public_key", "your_private_key", None);
     ///
     /// phant.add("apple_color", "red");
     /// let url = phant.get_url();
-    /// assert_eq!(url, String::from("http://data.sparkfun.com/input/your_public_key?private_key=your_private_key&apple_color=red"))
+    /// assert_eq!(url, String::from("https://data.sparkfun.com/input/your_public_key?private_key=your_private_key&apple_color=red"))
     /// ```
     pub fn get_url(&self) -> String {
-        format!("http://{}/input/{}?private_key={}&{}", self.hostname, self.public_key, self.private_key, self.data_query_string())
+        format!("{}/input/{}?private_key={}&{}", self.hostname, self.public_key, self.private_key, self.data_query_string())
     }
 
     /// Returns a clone of the data for the current row being added to. Notice: it's a
@@ -174,6 +214,11 @@ impl Phant {
         self.private_key.clone()
     }
 
+    /// Returns a clone of the optional delete key for this phant struct
+    pub fn delete_key(&self) -> Option<String> {
+        self.delete_key.clone()
+    }
+
     fn data_query_string(&self) -> String {
         let mut result_list = Vec::new();
         for (key, value) in self.data.iter() {
@@ -190,7 +235,7 @@ mod test {
 
     #[test]
     fn test_get_url() {
-        let expected = "http://data.com/input/pub?private_key=priv&color=red".to_string();
+        let expected = "https://data.com/input/pub?private_key=priv&color=red".to_string();
         let p = basic_phant();
         assert_eq!(p.row_data().len(), 1);
         assert_eq!(p.get_url(), expected);
@@ -233,7 +278,7 @@ mod test {
     }
 
     fn basic_phant() -> Phant {
-        let mut p = Phant::new("data.com", "pub", "priv");
+        let mut p = Phant::new("https://data.com", "pub", "priv", None);
         p.add("color", "red");
         p
     }
