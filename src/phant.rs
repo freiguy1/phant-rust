@@ -25,7 +25,7 @@ impl StreamSpec {
         let mut object_builder = ObjectBuilder::new()
             .insert("title".to_string(), &self.title)
             .insert("description".to_string(), &self.description)
-            .insert("fields".to_string(), self.fields.connect(","))
+            .insert("fields".to_string(), self.fields.join(","))
             .insert("hidden".to_string(), if self.hidden { 1 } else { 0 });
         if let Some(ref alias) = self.alias {
             object_builder = object_builder.insert(
@@ -36,7 +36,7 @@ impl StreamSpec {
             if tags.len() > 0 {
                 object_builder = object_builder.insert(
                     "tags".to_string(),
-                    tags.connect(","));
+                    tags.join(","));
             }
         }
         json::to_string(&object_builder.unwrap()).ok().unwrap()
@@ -224,7 +224,7 @@ impl Phant {
         for (key, value) in self.data.iter() {
             result_list.push(format!("{}={}", key, value));
         }
-        utf8_percent_encode(result_list.connect("&").as_ref(), DEFAULT_ENCODE_SET)
+        utf8_percent_encode(result_list.join("&").as_ref(), DEFAULT_ENCODE_SET)
     }
 
 }
