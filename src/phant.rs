@@ -224,7 +224,7 @@ impl Phant {
         for (key, value) in self.data.iter() {
             result_list.push(format!("{}={}", key, value));
         }
-        utf8_percent_encode(result_list.join("&").as_ref(), DEFAULT_ENCODE_SET)
+        utf8_percent_encode(result_list.join("&").as_ref(), DEFAULT_ENCODE_SET).to_string()
     }
 
 }
