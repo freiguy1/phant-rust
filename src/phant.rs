@@ -39,7 +39,7 @@ impl StreamSpec {
                     tags.join(","));
             }
         }
-        json::to_string(&object_builder.unwrap()).ok().unwrap()
+        json::to_string(&object_builder.build()).ok().unwrap()
     }
 }
 
@@ -96,22 +96,22 @@ impl Phant {
         let data: json::Value = json::from_str(&response_body).unwrap();
         let data_object = data.as_object().unwrap();
         let success_value = data_object.get("success").unwrap();
-        match success_value.as_boolean().unwrap() {
+        match success_value.as_bool().unwrap() {
             true => {
                 let public_key_value = data_object.get("publicKey").unwrap();
                 let private_key_value = data_object.get("privateKey").unwrap();
                 let delete_key_value = data_object.get("deleteKey").unwrap();
                 Ok(Phant {
                     hostname: hostname.to_string(),
-                    public_key: public_key_value.as_string().unwrap().to_string(),
-                    private_key: private_key_value.as_string().unwrap().to_string(),
-                    delete_key: Some(delete_key_value.as_string().unwrap().to_string()),
+                    public_key: public_key_value.as_str().unwrap().to_string(),
+                    private_key: private_key_value.as_str().unwrap().to_string(),
+                    delete_key: Some(delete_key_value.as_str().unwrap().to_string()),
                     data: HashMap::new()
                 })
             }
             false => {
                 let message_value = data_object.get("message").unwrap();
-                Err(Error::Phant(message_value.as_string().unwrap().to_string()))
+                Err(Error::Phant(message_value.as_str().unwrap().to_string()))
             }
         }
     }
