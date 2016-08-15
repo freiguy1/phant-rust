@@ -2,7 +2,7 @@ sudo: false
 
 language: rust
 
-rust: nightly
+rust: stable
 
 env:
   global:
