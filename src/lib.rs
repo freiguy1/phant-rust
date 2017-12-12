@@ -10,9 +10,13 @@
 //! of software.
 
 extern crate serde;
-extern crate serde_json;
+#[macro_use] extern crate serde_json;
 extern crate url;
 #[macro_use] extern crate hyper;
+extern crate hyper_tls;
+extern crate native_tls;
+extern crate futures;
+extern crate tokio_core;
 
 pub use phant::{ StreamSpec, Phant };
 

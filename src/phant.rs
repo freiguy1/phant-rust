@@ -1,10 +1,8 @@
 use std::collections::HashMap;
-use std::io::Read;
 use url::percent_encoding::{ utf8_percent_encode, DEFAULT_ENCODE_SET };
 use std::convert::{ From, AsRef };
 
-use serde_json::builder::ObjectBuilder;
-use serde_json as json;
+use serde_json;
 
 use ::error::Error;
 
@@ -22,24 +20,15 @@ pub struct StreamSpec {
 
 impl StreamSpec {
     fn serialize(&self) -> String {
-        let mut object_builder = ObjectBuilder::new()
-            .insert("title".to_string(), &self.title)
-            .insert("description".to_string(), &self.description)
-            .insert("fields".to_string(), self.fields.join(","))
-            .insert("hidden".to_string(), if self.hidden { 1 } else { 0 });
-        if let Some(ref alias) = self.alias {
-            object_builder = object_builder.insert(
-                "alias".to_string(),
-                &alias);
-        }
-        if let Some(ref tags) = self.tags {
-            if tags.len() > 0 {
-                object_builder = object_builder.insert(
-                    "tags".to_string(),
-                    tags.join(","));
-            }
-        }
-        json::to_string(&object_builder.build()).ok().unwrap()
+        let obj = json!({
+            "title": self.title,
+            "description": self.description,
+            "fields": self.fields.join(","),
+            "hidden": if self.hidden { 1 } else { 0 },
+            "alias": self.alias,
+            "tags": self.tags.as_ref().map(|tags| tags.join(","))
+        });
+        obj.to_string()
     }
 }
 
@@ -90,10 +79,9 @@ impl Phant {
     /// ```
     pub fn create_stream(hostname: &str, spec: StreamSpec) -> Result<Phant, Error> {
         let serialized_spec = spec.serialize();
-        let mut response = try!(::web::create_stream(&hostname.to_string(), &serialized_spec));
-        let mut response_body = String::new();
-        try!(response.read_to_string(&mut response_body));
-        let data: json::Value = json::from_str(&response_body).unwrap();
+        let response = try!(::web::create_stream(&hostname.to_string(), &serialized_spec));
+        println!("create_stream response: {:?}", response);
+        let data: serde_json::Value = serde_json::from_str(&response)?;
         let data_object = data.as_object().unwrap();
         let success_value = data_object.get("success").unwrap();
         match success_value.as_bool().unwrap() {
@@ -156,14 +144,13 @@ impl Phant {
     /// Returns a Result with error type being custom type phant::Error
     pub fn push(&mut self) -> Result<String, Error> {
         let query_string = self.data_query_string();
-        let mut post_response = try!(::web::push_data(&self.hostname,
+        let post_response = try!(::web::push_data(&self.hostname,
                                                      &self.public_key,
                                                      &self.private_key,
                                                      &query_string));
-        let mut response_body = String::new();
-        try!(post_response.read_to_string(&mut response_body));
         self.clear_local();
-        Ok(response_body)
+        println!("post_response: {:?}", post_response);
+        Ok(post_response)
     }
 
     /// Clears the data locally.  Any key-value pairs that have been added since creation or
@@ -174,12 +161,10 @@ impl Phant {
 
     /// Clears the data on the server.
     pub fn clear_server(&mut self) -> Result<String, Error> {
-        let mut clear_response = try!(::web::clear_data(&self.hostname,
+        let clear_response = try!(::web::clear_data(&self.hostname,
                                                      &self.public_key,
                                                      &self.private_key));
-        let mut response_body = String::new();
-        try!(clear_response.read_to_string(&mut response_body));
-        Ok(response_body)
+        Ok(clear_response)
     }
 
     /// Gets a formatted URL in string form for adding the current row to the server.
@@ -275,6 +260,40 @@ mod test {
         assert!(p.row_data().len() > 0);
         p.clear_local();
         assert_eq!(p.row_data().len(), 0);
+    }
+
+    #[test]
+    fn test_create_stream() {
+        let phant_result = Phant::create_stream("https://data.sparkfun.com",
+            ::phant::StreamSpec {
+                title: "My Title".to_string(),
+                description: "My description".to_string(),
+                fields: vec!["a".to_string(), "b".to_string()],
+                hidden: true,
+                tags: None,
+                alias: None
+            });
+
+        println!("phant_result: {:?}", phant_result);
+        
+        assert!(phant_result.is_ok());
+        
+        // Clean up!
+        let delete_result = phant_result.ok().unwrap().delete_stream();
+
+        assert!(delete_result.is_ok());
+    }
+
+    #[test]
+    fn push_data() {
+        let mut phant = Phant::new("https://data.sparkfun.com", "Jxyjr7DmxwTD5dG1D1Kv",
+        "gzgnB4VazkIg7GN1g1qA", None);
+        phant.add("brewTemp", "posting from the rust library @ github.com/freiguy1/phant-rust");
+        let push_result = phant.push();
+
+        println!("push_result: {:?}", push_result);
+
+        assert!(push_result.is_ok());
     }
 
     fn basic_phant() -> Phant {
