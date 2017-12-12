@@ -1,3 +1,5 @@
+_notice: Phant has been shut down, with it, this lib is now deprecated_
+
 phant-rust [![Build Status](https://travis-ci.org/freiguy1/phant-rust.svg?branch=master)](https://travis-ci.org/freiguy1/phant-rust)
 ==========
 
